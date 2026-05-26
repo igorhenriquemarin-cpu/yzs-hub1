@@ -1,0 +1,536 @@
+-- YZS Hub - Script Local
+-- Autor: yzs_7l
+
+-- Serviços
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Variáveis globais
+local espEnabled = false
+local espBoxEnabled = false
+local espSkeletonEnabled = false
+local hitboxEnabled = false
+local speedEnabled = false
+local jumpEnabled = false
+local flyEnabled = false
+local noclipEnabled = false
+
+local flySpeed = 50
+local flyBodyVelocity = nil
+local flyConnections = {}
+
+local originalWalkSpeed = 16
+local originalJumpPower = 50
+
+-- Função para criar o botão principal (círculo com 🌑 e "menu")
+local function createMainButton()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "YZS_Hub"
+    screenGui.Parent = CoreGui
+
+    local mainButton = Instance.new("ImageButton")
+    mainButton.Size = UDim2.new(0, 80, 0, 80)
+    mainButton.Position = UDim2.new(0.5, -40, 0.8, 0)
+    mainButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    mainButton.BackgroundTransparency = 0.2
+    mainButton.Image = "rbxassetid://3926305904" -- círculo
+    mainButton.ImageColor3 = Color3.fromRGB(255, 215, 0)
+    mainButton.Parent = screenGui
+
+    -- Corner para arredondar
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = mainButton
+
+    local emojiLabel = Instance.new("TextLabel")
+    emojiLabel.Size = UDim2.new(1, 0, 1, 0)
+    emojiLabel.BackgroundTransparency = 1
+    emojiLabel.Text = "🌑"
+    emojiLabel.TextSize = 40
+    emojiLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+    emojiLabel.Font = Enum.Font.SourceSansBold
+    emojiLabel.Parent = mainButton
+
+    local menuText = Instance.new("TextLabel")
+    menuText.Size = UDim2.new(1, 0, 0, 20)
+    menuText.Position = UDim2.new(0, 0, 1, -20)
+    menuText.BackgroundTransparency = 1
+    menuText.Text = "menu"
+    menuText.TextSize = 14
+    menuText.TextColor3 = Color3.fromRGB(255, 215, 0)
+    menuText.Font = Enum.Font.SourceSans
+    menuText.Parent = mainButton
+
+    return screenGui, mainButton
+end
+
+-- Função para criar o painel de funções (quadrado)
+local function createFunctionPanel()
+    local panel = Instance.new("Frame")
+    panel.Size = UDim2.new(0, 350, 0, 400)
+    panel.Position = UDim2.new(0.5, -175, 0.5, -200)
+    panel.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    panel.BackgroundTransparency = 0.1
+    panel.BorderSizePixel = 0
+    panel.Visible = false
+
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 12)
+    uiCorner.Parent = panel
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.BackgroundTransparency = 1
+    title.Text = "yzs hub      de      yzs_7l"
+    title.TextColor3 = Color3.fromRGB(255, 215, 0)
+    title.TextSize = 18
+    title.Font = Enum.Font.GothamBold
+    title.Parent = panel
+
+    -- Organização: A1, B1, C1
+    -- Botão ESP (A1)
+    local espBtn = Instance.new("TextButton")
+    espBtn.Size = UDim2.new(0, 100, 0, 50)
+    espBtn.Position = UDim2.new(0.05, 0, 0.15, 0)
+    espBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    espBtn.Text = "👀 ESP"
+    espBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    espBtn.Font = Enum.Font.SourceSansBold
+    espBtn.TextSize = 16
+    local espCorner = Instance.new("UICorner")
+    espCorner.CornerRadius = UDim.new(0, 8)
+    espCorner.Parent = espBtn
+    espBtn.Parent = panel
+
+    -- Botão Hitbox (B1)
+    local hitboxBtn = Instance.new("TextButton")
+    hitboxBtn.Size = UDim2.new(0, 100, 0, 50)
+    hitboxBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
+    hitboxBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    hitboxBtn.Text = "🎯 Hitbox"
+    hitboxBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    hitboxBtn.Font = Enum.Font.SourceSansBold
+    hitboxBtn.TextSize = 16
+    local hitboxCorner = Instance.new("UICorner")
+    hitboxCorner.CornerRadius = UDim.new(0, 8)
+    hitboxCorner.Parent = hitboxBtn
+    hitboxBtn.Parent = panel
+
+    -- Botão Movimento (C1)
+    local moveBtn = Instance.new("TextButton")
+    moveBtn.Size = UDim2.new(0, 100, 0, 50)
+    moveBtn.Position = UDim2.new(0.05, 0, 0.55, 0)
+    moveBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    moveBtn.Text = "🦶 Movimento"
+    moveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    moveBtn.Font = Enum.Font.SourceSansBold
+    moveBtn.TextSize = 16
+    local moveCorner = Instance.new("UICorner")
+    moveCorner.CornerRadius = UDim.new(0, 8)
+    moveCorner.Parent = moveBtn
+    moveBtn.Parent = panel
+
+    -- Sub-painéis que serão abertos por cada botão
+    local subPanelESP = nil
+    local subPanelHitbox = nil
+    local subPanelMovement = nil
+
+    -- Criar sub-painel ESP
+    local function createSubPanelESP()
+        local sub = Instance.new("Frame")
+        sub.Size = UDim2.new(0, 200, 0, 150)
+        sub.Position = UDim2.new(0.4, 0, 0.15, 0)
+        sub.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+        sub.BackgroundTransparency = 0.05
+        sub.BorderSizePixel = 0
+        sub.Visible = false
+        local subCorner = Instance.new("UICorner")
+        subCorner.CornerRadius = UDim.new(0, 8)
+        subCorner.Parent = sub
+
+        local titleEsp = Instance.new("TextLabel")
+        titleEsp.Size = UDim2.new(1, 0, 0, 30)
+        titleEsp.BackgroundTransparency = 1
+        titleEsp.Text = "ESP"
+        titleEsp.TextColor3 = Color3.fromRGB(255, 215, 0)
+        titleEsp.TextSize = 16
+        titleEsp.Font = Enum.Font.GothamBold
+        titleEsp.Parent = sub
+
+        -- ESP Caixa
+        local boxBtn = Instance.new("TextButton")
+        boxBtn.Size = UDim2.new(0, 180, 0, 40)
+        boxBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
+        boxBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        boxBtn.Text = "📦 ESP Caixa (Arco-íris)"
+        boxBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        boxBtn.Font = Enum.Font.SourceSans
+        boxBtn.TextSize = 14
+        local boxCorner = Instance.new("UICorner")
+        boxCorner.CornerRadius = UDim.new(0, 6)
+        boxCorner.Parent = boxBtn
+        boxBtn.Parent = sub
+
+        -- ESP Esqueleto
+        local skelBtn = Instance.new("TextButton")
+        skelBtn.Size = UDim2.new(0, 180, 0, 40)
+        skelBtn.Position = UDim2.new(0.05, 0, 0.55, 0)
+        skelBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        skelBtn.Text = "🦴 ESP Esqueleto"
+        skelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        skelBtn.Font = Enum.Font.SourceSans
+        skelBtn.TextSize = 14
+        local skelCorner = Instance.new("UICorner")
+        skelCorner.CornerRadius = UDim.new(0, 6)
+        skelCorner.Parent = skelBtn
+        skelBtn.Parent = sub
+
+        return sub, boxBtn, skelBtn
+    end
+
+    -- Criar sub-painel Hitbox
+    local function createSubPanelHitbox()
+        local sub = Instance.new("Frame")
+        sub.Size = UDim2.new(0, 250, 0, 100)
+        sub.Position = UDim2.new(0.4, 0, 0.35, 0)
+        sub.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+        sub.BackgroundTransparency = 0.05
+        sub.BorderSizePixel = 0
+        sub.Visible = false
+        local subCorner = Instance.new("UICorner")
+        subCorner.CornerRadius = UDim.new(0, 8)
+        subCorner.Parent = sub
+
+        local titleHit = Instance.new("TextLabel")
+        titleHit.Size = UDim2.new(1, 0, 0, 30)
+        titleHit.BackgroundTransparency = 1
+        titleHit.Text = "Hitbox 🎯"
+        titleHit.TextColor3 = Color3.fromRGB(255, 215, 0)
+        titleHit.TextSize = 16
+        titleHit.Font = Enum.Font.GothamBold
+        titleHit.Parent = sub
+
+        local toggleBtn = Instance.new("TextButton")
+        toggleBtn.Size = UDim2.new(0, 180, 0, 40)
+        toggleBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        toggleBtn.Text = "Ativar Hitbox"
+        toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        toggleBtn.Font = Enum.Font.SourceSans
+        toggleBtn.TextSize = 14
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = toggleBtn
+        toggleBtn.Parent = sub
+
+        return sub, toggleBtn
+    end
+
+    -- Criar sub-painel Movimento
+    local function createSubPanelMovement()
+        local sub = Instance.new("Frame")
+        sub.Size = UDim2.new(0, 250, 0, 200)
+        sub.Position = UDim2.new(0.4, 0, 0.55, 0)
+        sub.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+        sub.BackgroundTransparency = 0.05
+        sub.BorderSizePixel = 0
+        sub.Visible = false
+        local subCorner = Instance.new("UICorner")
+        subCorner.CornerRadius = UDim.new(0, 8)
+        subCorner.Parent = sub
+
+        local titleMove = Instance.new("TextLabel")
+        titleMove.Size = UDim2.new(1, 0, 0, 30)
+        titleMove.BackgroundTransparency = 1
+        titleMove.Text = "Movimento 🦶"
+        titleMove.TextColor3 = Color3.fromRGB(255, 215, 0)
+        titleMove.TextSize = 16
+        titleMove.Font = Enum.Font.GothamBold
+        titleMove.Parent = sub
+
+        -- Velocidade
+        local speedBtn = Instance.new("TextButton")
+        speedBtn.Size = UDim2.new(0, 110, 0, 35)
+        speedBtn.Position = UDim2.new(0.05, 0, 0.2, 0)
+        speedBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        speedBtn.Text = "Velocidade +"
+        speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        speedBtn.Font = Enum.Font.SourceSans
+        speedBtn.TextSize = 14
+        local spCorner = Instance.new("UICorner")
+        spCorner.CornerRadius = UDim.new(0, 6)
+        spCorner.Parent = speedBtn
+        speedBtn.Parent = sub
+
+        local speedDownBtn = Instance.new("TextButton")
+        speedDownBtn.Size = UDim2.new(0, 110, 0, 35)
+        speedDownBtn.Position = UDim2.new(0.55, 0, 0.2, 0)
+        speedDownBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        speedDownBtn.Text = "Velocidade -"
+        speedDownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        speedDownBtn.Font = Enum.Font.SourceSans
+        speedDownBtn.TextSize = 14
+        local spdCorner = Instance.new("UICorner")
+        spdCorner.CornerRadius = UDim.new(0, 6)
+        spdCorner.Parent = speedDownBtn
+        speedDownBtn.Parent = sub
+
+        -- Pulo
+        local jumpBtn = Instance.new("TextButton")
+        jumpBtn.Size = UDim2.new(0, 110, 0, 35)
+        jumpBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+        jumpBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        jumpBtn.Text = "Pulo +"
+        jumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        jumpBtn.Font = Enum.Font.SourceSans
+        jumpBtn.TextSize = 14
+        local jCorner = Instance.new("UICorner")
+        jCorner.CornerRadius = UDim.new(0, 6)
+        jCorner.Parent = jumpBtn
+        jumpBtn.Parent = sub
+
+        local jumpDownBtn = Instance.new("TextButton")
+        jumpDownBtn.Size = UDim2.new(0, 110, 0, 35)
+        jumpDownBtn.Position = UDim2.new(0.55, 0, 0.45, 0)
+        jumpDownBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        jumpDownBtn.Text = "Pulo -"
+        jumpDownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        jumpDownBtn.Font = Enum.Font.SourceSans
+        jumpDownBtn.TextSize = 14
+        local jdCorner = Instance.new("UICorner")
+        jdCorner.CornerRadius = UDim.new(0, 6)
+        jdCorner.Parent = jumpDownBtn
+        jumpDownBtn.Parent = sub
+
+        -- Fly e Noclip
+        local flyBtn = Instance.new("TextButton")
+        flyBtn.Size = UDim2.new(0, 110, 0, 35)
+        flyBtn.Position = UDim2.new(0.05, 0, 0.7, 0)
+        flyBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        flyBtn.Text = "Fly (Toggle)"
+        flyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        flyBtn.Font = Enum.Font.SourceSans
+        flyBtn.TextSize = 14
+        local flyCorner = Instance.new("UICorner")
+        flyCorner.CornerRadius = UDim.new(0, 6)
+        flyCorner.Parent = flyBtn
+        flyBtn.Parent = sub
+
+        local noclipBtn = Instance.new("TextButton")
+        noclipBtn.Size = UDim2.new(0, 110, 0, 35)
+        noclipBtn.Position = UDim2.new(0.55, 0, 0.7, 0)
+        noclipBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+        noclipBtn.Text = "Noclip"
+        noclipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        noclipBtn.Font = Enum.Font.SourceSans
+        noclipBtn.TextSize = 14
+        local noclipCorner = Instance.new("UICorner")
+        noclipCorner.CornerRadius = UDim.new(0, 6)
+        noclipCorner.Parent = noclipBtn
+        noclipBtn.Parent = sub
+
+        return sub, speedBtn, speedDownBtn, jumpBtn, jumpDownBtn, flyBtn, noclipBtn
+    end
+
+    -- Inicializar sub-painéis
+    subPanelESP, espBoxBtn, espSkelBtn = createSubPanelESP()
+    subPanelHitbox, hitboxToggleBtn = createSubPanelHitbox()
+    subPanelMovement, speedUp, speedDown, jumpUp, jumpDown, flyToggle, noclipToggle = createSubPanelMovement()
+
+    subPanelESP.Parent = panel
+    subPanelHitbox.Parent = panel
+    subPanelMovement.Parent = panel
+
+    -- Funções de controle de visibilidade dos sub-painéis
+    espBtn.MouseButton1Click:Connect(function()
+        subPanelESP.Visible = not subPanelESP.Visible
+        subPanelHitbox.Visible = false
+        subPanelMovement.Visible = false
+    end)
+
+    hitboxBtn.MouseButton1Click:Connect(function()
+        subPanelHitbox.Visible = not subPanelHitbox.Visible
+        subPanelESP.Visible = false
+        subPanelMovement.Visible = false
+    end)
+
+    moveBtn.MouseButton1Click:Connect(function()
+        subPanelMovement.Visible = not subPanelMovement.Visible
+        subPanelESP.Visible = false
+        subPanelHitbox.Visible = false
+    end)
+
+    -- Funcionalidades
+
+    -- ESP Caixa (quadrado colorido arco-íris)
+    local boxESPObjects = {}
+    local rainbowHue = 0
+
+    local function updateRainbowESP()
+        if not espBoxEnabled then return end
+        rainbowHue = (rainbowHue + 0.02) % 1
+        local color = Color3.fromHSV(rainbowHue, 1, 1)
+        for _, obj in pairs(boxESPObjects) do
+            if obj and obj.Parent then
+                -- Para cada jogador, atualiza cor da caixa
+                for _, part in pairs(obj:GetChildren()) do
+                    if part:IsA("BoxHandleAdornment") then
+                        part.Color3 = color
+                    end
+                end
+            end
+        end
+    end
+
+    local function createBoxESP()
+        for _, otherPlayer in pairs(Players:GetPlayers()) do
+            if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                if not boxESPObjects[otherPlayer] then
+                    local char = otherPlayer.Character
+                    local hrp = char.HumanoidRootPart
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Size = Vector3.new(4, 5, 2)
+                    box.Adornee = hrp
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 10
+                    box.Visible = true
+                    box.Parent = hrp
+                    boxESPObjects[otherPlayer] = box
+                end
+            end
+        end
+    end
+
+    local function clearBoxESP()
+        for player, box in pairs(boxESPObjects) do
+            if box and box.Parent then
+                box:Destroy()
+            end
+        end
+        table.clear(boxESPObjects)
+    end
+
+    -- ESP Esqueleto (linhas coloridas entre as juntas)
+    local skeletonLines = {}
+    local function createSkeletonESP()
+        for _, otherPlayer in pairs(Players:GetPlayers()) do
+            if otherPlayer ~= player and otherPlayer.Character then
+                local char = otherPlayer.Character
+                local joints = {
+                    {"Head", "UpperTorso"},
+                    {"UpperTorso", "LowerTorso"},
+                    {"LowerTorso", "HumanoidRootPart"},
+                    {"LeftUpperArm", "LeftLowerArm"},
+                    {"LeftLowerArm", "LeftHand"},
+                    {"RightUpperArm", "RightLowerArm"},
+                    {"RightLowerArm", "RightHand"},
+                    {"LeftUpperLeg", "LeftLowerLeg"},
+                    {"LeftLowerLeg", "LeftFoot"},
+                    {"RightUpperLeg", "RightLowerLeg"},
+                    {"RightLowerLeg", "RightFoot"}
+                }
+                for _, joint in pairs(joints) do
+                    local partA = char:FindFirstChild(joint[1])
+                    local partB = char:FindFirstChild(joint[2])
+                    if partA and partB then
+                        local line = Instance.new("SelectionBox")
+                        line.Adornee = partA
+                        line.Color3 = Color3.fromHSV(math.random(), 1, 1)
+                        line.Transparency = 0.5
+                        line.LineThickness = 0.1
+                        line.Parent = partA
+                        if not skeletonLines[otherPlayer] then skeletonLines[otherPlayer] = {} end
+                        table.insert(skeletonLines[otherPlayer], line)
+                    end
+                end
+            end
+        end
+    end
+
+    local function clearSkeletonESP()
+        for player, lines in pairs(skeletonLines) do
+            for _, line in pairs(lines) do
+                if line and line.Parent then
+                    line:Destroy()
+                end
+            end
+        end
+        table.clear(skeletonLines)
+    end
+
+    -- Toggle ESP Caixa
+    espBoxBtn.MouseButton1Click:Connect(function()
+        espBoxEnabled = not espBoxEnabled
+        if espBoxEnabled then
+            createBoxESP()
+            -- Atualização contínua das cores
+            RunService.RenderStepped:Connect(function()
+                if espBoxEnabled then
+                    updateRainbowESP()
+                end
+            end)
+            -- Adicionar novos jogadores dinamicamente
+            Players.PlayerAdded:Connect(function(newPlayer)
+                if espBoxEnabled then
+                    task.wait(1)
+                    createBoxESP()
+                end
+            end)
+        else
+            clearBoxESP()
+        end
+    end)
+
+    -- Toggle ESP Esqueleto
+    espSkelBtn.MouseButton1Click:Connect(function()
+        espSkeletonEnabled = not espSkeletonEnabled
+        if espSkeletonEnabled then
+            createSkeletonESP()
+            -- Atualizar cores aleatórias a cada segundo
+            while espSkeletonEnabled do
+                task.wait(1)
+                for player, lines in pairs(skeletonLines) do
+                    for _, line in pairs(lines) do
+                        if line then
+                            line.Color3 = Color3.fromHSV(math.random(), 1, 1)
+                        end
+                    end
+                end
+            end
+        else
+            clearSkeletonESP()
+        end
+    end)
+
+    -- Hitbox: cria um quadrado invisível que detecta dano à distância
+    local hitboxPart = nil
+    local function createHitbox()
+        if hitboxPart then hitboxPart:Destroy() end
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(10, 10, 10)
+        part.Transparency = 0.5
+        part.Color = Color3.fromRGB(255, 0, 0)
+        part.Material = Enum.Material.Neon
+        part.Anchored = true
+        part.CanCollide = false
+        part.Parent = workspace
+
+        -- Anexar ao jogador
+        local attachment = Instance.new("Attachment")
+        attachment.Parent = character:WaitForChild("HumanoidRootPart")
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = character.HumanoidRootPart
+        weld.Part1 = part
+        weld.Parent = part
+
+        -- Detectar toque e infligir dano (simulação)
+        part.Touched:Connect(function(hit)
+            if hitboxEnabled and hit.Parent and hit.
