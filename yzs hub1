@@ -30,7 +30,7 @@ local flyConnections = {}
 local originalWalkSpeed = 16
 local originalJumpPower = 50
 
--- Função para criar o botão principal (círculo com 🌑 e "menu")
+-- Função para criar o botão principal (círculo com 🌋 e "menu")
 local function createMainButton()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "YZS_Hub"
@@ -53,7 +53,7 @@ local function createMainButton()
     local emojiLabel = Instance.new("TextLabel")
     emojiLabel.Size = UDim2.new(1, 0, 1, 0)
     emojiLabel.BackgroundTransparency = 1
-    emojiLabel.Text = "🌑"
+    emojiLabel.Text = "🌋"
     emojiLabel.TextSize = 40
     emojiLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
     emojiLabel.Font = Enum.Font.SourceSansBold
@@ -115,7 +115,7 @@ local function createFunctionPanel()
     hitboxBtn.Size = UDim2.new(0, 100, 0, 50)
     hitboxBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
     hitboxBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-    hitboxBtn.Text = "🎯 Hitbox"
+    hitboxBtn.Text = " Hitbox"
     hitboxBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     hitboxBtn.Font = Enum.Font.SourceSansBold
     hitboxBtn.TextSize = 16
@@ -129,7 +129,7 @@ local function createFunctionPanel()
     moveBtn.Size = UDim2.new(0, 100, 0, 50)
     moveBtn.Position = UDim2.new(0.05, 0, 0.55, 0)
     moveBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-    moveBtn.Text = "🦶 Movimento"
+    moveBtn.Text = " Movimento"
     moveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     moveBtn.Font = Enum.Font.SourceSansBold
     moveBtn.TextSize = 16
@@ -170,7 +170,7 @@ local function createFunctionPanel()
         boxBtn.Size = UDim2.new(0, 180, 0, 40)
         boxBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
         boxBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
-        boxBtn.Text = "📦 ESP Caixa (Arco-íris)"
+        boxBtn.Text = " ESP Caixa (Arco-íris)"
         boxBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         boxBtn.Font = Enum.Font.SourceSans
         boxBtn.TextSize = 14
@@ -184,7 +184,7 @@ local function createFunctionPanel()
         skelBtn.Size = UDim2.new(0, 180, 0, 40)
         skelBtn.Position = UDim2.new(0.05, 0, 0.55, 0)
         skelBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
-        skelBtn.Text = "🦴 ESP Esqueleto"
+        skelBtn.Text = " ESP Esqueleto"
         skelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         skelBtn.Font = Enum.Font.SourceSans
         skelBtn.TextSize = 14
@@ -212,7 +212,7 @@ local function createFunctionPanel()
         local titleHit = Instance.new("TextLabel")
         titleHit.Size = UDim2.new(1, 0, 0, 30)
         titleHit.BackgroundTransparency = 1
-        titleHit.Text = "Hitbox 🎯"
+        titleHit.Text = "Hitbox "
         titleHit.TextColor3 = Color3.fromRGB(255, 215, 0)
         titleHit.TextSize = 16
         titleHit.Font = Enum.Font.GothamBold
@@ -250,7 +250,7 @@ local function createFunctionPanel()
         local titleMove = Instance.new("TextLabel")
         titleMove.Size = UDim2.new(1, 0, 0, 30)
         titleMove.BackgroundTransparency = 1
-        titleMove.Text = "Movimento 🦶"
+        titleMove.Text = "Movimento "
         titleMove.TextColor3 = Color3.fromRGB(255, 215, 0)
         titleMove.TextSize = 16
         titleMove.Font = Enum.Font.GothamBold
